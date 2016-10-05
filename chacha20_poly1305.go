@@ -20,7 +20,8 @@ import (
 	"encoding/binary"
 	"errors"
 
-	"./poly1305"
+	"golang.org/x/crypto/poly1305"
+	//"poly1305"
 )
 
 // See RFC 7539.

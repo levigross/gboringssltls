@@ -16,8 +16,9 @@ import (
 	"io"
 	"math/big"
 
-	"./curve25519"
-	"./newhope"
+	"golang.org/x/crypto/curve25519"
+
+	"github.com/levigross/gboringssltls/newhope"
 )
 
 type keyType int
