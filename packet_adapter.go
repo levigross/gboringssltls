@@ -28,7 +28,7 @@ const opcodeTimeoutAck = byte('t')
 
 type packetAdaptor struct {
 	net.Conn
-	debug *recordingConn
+	debug *RecordingConn
 }
 
 // newPacketAdaptor wraps a reliable streaming net.Conn into a reliable

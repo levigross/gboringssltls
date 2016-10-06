@@ -122,7 +122,7 @@ var serverFinishedLabel = []byte("server finished")
 var channelIDLabel = []byte("TLS Channel ID signature\x00")
 var channelIDResumeLabel = []byte("Resumption\x00")
 
-func prfForVersion(version uint16, suite *cipherSuite) func(result, secret, label, seed []byte) {
+func prfForVersion(version uint16, suite *CipherSuite) func(result, secret, label, seed []byte) {
 	switch version {
 	case VersionSSL30:
 		return prf30
@@ -142,7 +142,7 @@ func prfForVersion(version uint16, suite *cipherSuite) func(result, secret, labe
 
 // masterFromPreMasterSecret generates the master secret from the pre-master
 // secret. See http://tools.ietf.org/html/rfc5246#section-8.1
-func masterFromPreMasterSecret(version uint16, suite *cipherSuite, preMasterSecret, clientRandom, serverRandom []byte) []byte {
+func masterFromPreMasterSecret(version uint16, suite *CipherSuite, preMasterSecret, clientRandom, serverRandom []byte) []byte {
 	var seed [tlsRandomLength * 2]byte
 	copy(seed[0:len(clientRandom)], clientRandom)
 	copy(seed[len(clientRandom):], serverRandom)
@@ -154,7 +154,7 @@ func masterFromPreMasterSecret(version uint16, suite *cipherSuite, preMasterSecr
 // extendedMasterFromPreMasterSecret generates the master secret from the
 // pre-master secret when the Triple Handshake fix is in effect. See
 // https://tools.ietf.org/html/rfc7627
-func extendedMasterFromPreMasterSecret(version uint16, suite *cipherSuite, preMasterSecret []byte, h finishedHash) []byte {
+func extendedMasterFromPreMasterSecret(version uint16, suite *CipherSuite, preMasterSecret []byte, h finishedHash) []byte {
 	masterSecret := make([]byte, masterSecretLength)
 	prfForVersion(version, suite)(masterSecret, preMasterSecret, extendedMasterSecretLabel, h.Sum())
 	return masterSecret
@@ -163,7 +163,7 @@ func extendedMasterFromPreMasterSecret(version uint16, suite *cipherSuite, preMa
 // keysFromMasterSecret generates the connection keys from the master
 // secret, given the lengths of the MAC key, cipher key and IV, as defined in
 // RFC 2246, section 6.3.
-func keysFromMasterSecret(version uint16, suite *cipherSuite, masterSecret, clientRandom, serverRandom []byte, macLen, keyLen, ivLen int) (clientMAC, serverMAC, clientKey, serverKey, clientIV, serverIV []byte) {
+func keysFromMasterSecret(version uint16, suite *CipherSuite, masterSecret, clientRandom, serverRandom []byte, macLen, keyLen, ivLen int) (clientMAC, serverMAC, clientKey, serverKey, clientIV, serverIV []byte) {
 	var seed [tlsRandomLength * 2]byte
 	copy(seed[0:len(clientRandom)], serverRandom)
 	copy(seed[len(serverRandom):], clientRandom)
@@ -185,7 +185,7 @@ func keysFromMasterSecret(version uint16, suite *cipherSuite, masterSecret, clie
 	return
 }
 
-func newFinishedHash(version uint16, cipherSuite *cipherSuite) finishedHash {
+func newFinishedHash(version uint16, cipherSuite *CipherSuite) finishedHash {
 	var ret finishedHash
 
 	if version >= VersionTLS12 {
@@ -471,7 +471,7 @@ const (
 
 // deriveTrafficAEAD derives traffic keys and constructs an AEAD given a traffic
 // secret.
-func deriveTrafficAEAD(version uint16, suite *cipherSuite, secret, phase []byte, side trafficDirection) interface{} {
+func deriveTrafficAEAD(version uint16, suite *CipherSuite, secret, phase []byte, side trafficDirection) interface{} {
 	label := make([]byte, 0, len(phase)+2+16)
 	label = append(label, phase...)
 	if side == clientWrite {
@@ -492,10 +492,10 @@ func updateTrafficSecret(hash crypto.Hash, secret []byte) []byte {
 	return hkdfExpandLabel(hash, secret, applicationTrafficLabel, nil, hash.Size())
 }
 
-func deriveResumptionPSK(suite *cipherSuite, resumptionSecret []byte) []byte {
+func deriveResumptionPSK(suite *CipherSuite, resumptionSecret []byte) []byte {
 	return hkdfExpandLabel(suite.hash(), resumptionSecret, []byte("resumption psk"), nil, suite.hash().Size())
 }
 
-func deriveResumptionContext(suite *cipherSuite, resumptionSecret []byte) []byte {
+func deriveResumptionContext(suite *CipherSuite, resumptionSecret []byte) []byte {
 	return hkdfExpandLabel(suite.hash(), resumptionSecret, []byte("resumption context"), nil, suite.hash().Size())
 }

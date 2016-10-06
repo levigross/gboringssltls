@@ -27,15 +27,15 @@ type keyAgreement interface {
 	// In the case that the key agreement protocol doesn't use a
 	// ServerKeyExchange message, generateServerKeyExchange can return nil,
 	// nil.
-	generateServerKeyExchange(*Config, *Certificate, *clientHelloMsg, *serverHelloMsg) (*serverKeyExchangeMsg, error)
-	processClientKeyExchange(*Config, *Certificate, *clientKeyExchangeMsg, uint16) ([]byte, error)
+	generateServerKeyExchange(*Config, *Certificate, *ClientHelloMsg, *ServerHelloMsg) (*ServerKeyExchangeMsg, error)
+	processClientKeyExchange(*Config, *Certificate, *ClientKeyExchangeMsg, uint16) ([]byte, error)
 
 	// On the client side, the next two methods are called in order.
 
 	// This method may not be called if the server doesn't send a
 	// ServerKeyExchange message.
-	processServerKeyExchange(*Config, *clientHelloMsg, *serverHelloMsg, *x509.Certificate, *serverKeyExchangeMsg) error
-	generateClientKeyExchange(*Config, *clientHelloMsg, *x509.Certificate) ([]byte, *clientKeyExchangeMsg, error)
+	processServerKeyExchange(*Config, *ClientHelloMsg, *ServerHelloMsg, *x509.Certificate, *ServerKeyExchangeMsg) error
+	generateClientKeyExchange(*Config, *ClientHelloMsg, *x509.Certificate) ([]byte, *ClientKeyExchangeMsg, error)
 
 	// peerSignatureAlgorithm returns the signature algorithm used by the
 	// peer, or zero if not applicable.
@@ -80,7 +80,7 @@ type tlsAead struct {
 
 // A cipherSuite is a specific combination of key agreement, cipher and MAC
 // function. All cipher suites currently assume RSA key agreement.
-type cipherSuite struct {
+type CipherSuite struct {
 	id uint16
 	// the lengths, in bytes, of the key material needed for each component.
 	keyLen int
@@ -94,7 +94,7 @@ type cipherSuite struct {
 	aead   func(version uint16, key, fixedNonce []byte) *tlsAead
 }
 
-func (cs cipherSuite) hash() crypto.Hash {
+func (cs CipherSuite) hash() crypto.Hash {
 	if cs.flags&suiteSHA384 != 0 {
 		return crypto.SHA384
 	}
@@ -122,7 +122,7 @@ func ecdhePSKSuite(id uint16) uint16 {
 	return 0
 }
 
-var cipherSuites = []*cipherSuite{
+var cipherSuites = []*CipherSuite{
 	// Ciphersuite order is chosen so that ECDHE comes before plain RSA
 	// and RC4 comes before AES (because of the Lucky13 attack).
 	{TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256, 32, 0, ivLenChaCha20Poly1305, ecdheECDSAKA, suiteECDHE | suiteECDSA | suiteTLS12 | suiteTLS13, nil, nil, aeadCHACHA20POLY1305},
@@ -497,7 +497,7 @@ func ecdhePSKKA(version uint16) keyAgreement {
 
 // mutualCipherSuite returns a cipherSuite given a list of supported
 // ciphersuites and the id requested by the peer.
-func mutualCipherSuite(have []uint16, want uint16) *cipherSuite {
+func mutualCipherSuite(have []uint16, want uint16) *CipherSuite {
 	for _, id := range have {
 		if id == want {
 			for _, suite := range cipherSuites {

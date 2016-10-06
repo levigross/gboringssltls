@@ -41,68 +41,68 @@ const (
 )
 
 // TLS record types.
-type recordType uint8
+type RecordType uint8
 
 const (
-	recordTypeChangeCipherSpec recordType = 20
-	recordTypeAlert            recordType = 21
-	recordTypeHandshake        recordType = 22
-	recordTypeApplicationData  recordType = 23
+	RecordTypeChangeCipherSpec RecordType = 20
+	RecordTypeAlert            RecordType = 21
+	RecordTypeHandshake        RecordType = 22
+	RecordTypeApplicationData  RecordType = 23
 )
 
 // TLS handshake message types.
 const (
-	typeHelloRequest        uint8 = 0
-	typeClientHello         uint8 = 1
-	typeServerHello         uint8 = 2
-	typeHelloVerifyRequest  uint8 = 3
-	typeNewSessionTicket    uint8 = 4
-	typeHelloRetryRequest   uint8 = 6 // draft-ietf-tls-tls13-13
-	typeEncryptedExtensions uint8 = 8 // draft-ietf-tls-tls13-13
-	typeCertificate         uint8 = 11
-	typeServerKeyExchange   uint8 = 12
-	typeCertificateRequest  uint8 = 13
-	typeServerHelloDone     uint8 = 14
-	typeCertificateVerify   uint8 = 15
-	typeClientKeyExchange   uint8 = 16
-	typeFinished            uint8 = 20
-	typeCertificateStatus   uint8 = 22
-	typeKeyUpdate           uint8 = 24  // draft-ietf-tls-tls13-13
-	typeNextProtocol        uint8 = 67  // Not IANA assigned
-	typeChannelID           uint8 = 203 // Not IANA assigned
+	TypeHelloRequest        uint8 = 0
+	TypeClientHello         uint8 = 1
+	TypeServerHello         uint8 = 2
+	TypeHelloVerifyRequest  uint8 = 3
+	TypeNewSessionTicket    uint8 = 4
+	TypeHelloRetryRequest   uint8 = 6 // draft-ietf-tls-tls13-13
+	TypeEncryptedExtensions uint8 = 8 // draft-ietf-tls-tls13-13
+	TypeCertificate         uint8 = 11
+	TypeServerKeyExchange   uint8 = 12
+	TypeCertificateRequest  uint8 = 13
+	TypeServerHelloDone     uint8 = 14
+	TypeCertificateVerify   uint8 = 15
+	TypeClientKeyExchange   uint8 = 16
+	TypeFinished            uint8 = 20
+	TypeCertificateStatus   uint8 = 22
+	TypeKeyUpdate           uint8 = 24  // draft-ietf-tls-tls13-13
+	TypeNextProtocol        uint8 = 67  // Not IANA assigned
+	TypeChannelID           uint8 = 203 // Not IANA assigned
 )
 
 // TLS compression types.
 const (
-	compressionNone uint8 = 0
+	CompressionNone uint8 = 0
 )
 
 // TLS extension numbers
 const (
-	extensionServerName                 uint16 = 0
-	extensionStatusRequest              uint16 = 5
-	extensionSupportedCurves            uint16 = 10
-	extensionSupportedPoints            uint16 = 11
-	extensionSignatureAlgorithms        uint16 = 13
-	extensionUseSRTP                    uint16 = 14
-	extensionALPN                       uint16 = 16
-	extensionSignedCertificateTimestamp uint16 = 18
-	extensionExtendedMasterSecret       uint16 = 23
-	extensionSessionTicket              uint16 = 35
-	extensionKeyShare                   uint16 = 40    // draft-ietf-tls-tls13-13
-	extensionPreSharedKey               uint16 = 41    // draft-ietf-tls-tls13-13
-	extensionEarlyData                  uint16 = 42    // draft-ietf-tls-tls13-13
-	extensionSupportedVersions          uint16 = 43    // draft-ietf-tls-tls13-16
-	extensionCookie                     uint16 = 44    // draft-ietf-tls-tls13-13
-	extensionCustom                     uint16 = 1234  // not IANA assigned
-	extensionNextProtoNeg               uint16 = 13172 // not IANA assigned
-	extensionRenegotiationInfo          uint16 = 0xff01
-	extensionChannelID                  uint16 = 30032 // not IANA assigned
+	ExtensionServerName                 uint16 = 0
+	ExtensionStatusRequest              uint16 = 5
+	ExtensionSupportedCurves            uint16 = 10
+	ExtensionSupportedPoints            uint16 = 11
+	ExtensionSignatureAlgorithms        uint16 = 13
+	ExtensionUseSRTP                    uint16 = 14
+	ExtensionALPN                       uint16 = 16
+	ExtensionSignedCertificateTimestamp uint16 = 18
+	ExtensionExtendedMasterSecret       uint16 = 23
+	ExtensionSessionTicket              uint16 = 35
+	ExtensionKeyShare                   uint16 = 40    // draft-ietf-tls-tls13-13
+	ExtensionPreSharedKey               uint16 = 41    // draft-ietf-tls-tls13-13
+	ExtensionEarlyData                  uint16 = 42    // draft-ietf-tls-tls13-13
+	ExtensionSupportedVersions          uint16 = 43    // draft-ietf-tls-tls13-16
+	ExtensionCookie                     uint16 = 44    // draft-ietf-tls-tls13-13
+	ExtensionCustom                     uint16 = 1234  // not IANA assigned
+	ExtensionNextProtoNeg               uint16 = 13172 // not IANA assigned
+	ExtensionRenegotiationInfo          uint16 = 0xff01
+	ExtensionChannelID                  uint16 = 30032 // not IANA assigned
 )
 
 // TLS signaling cipher suite values
 const (
-	scsvRenegotiation uint16 = 0x00ff
+	ScsvRenegotiation uint16 = 0x00ff
 )
 
 // CurveID is the type of a TLS identifier for an elliptic curve. See
@@ -267,10 +267,10 @@ type ClientSessionCache interface {
 type ServerSessionCache interface {
 	// Get searches for a sessionState associated with the given session
 	// ID. On return, ok is true if one was found.
-	Get(sessionId string) (session *sessionState, ok bool)
+	Get(sessionId string) (session *SessionState, ok bool)
 
 	// Put adds the sessionState to the cache with the given session ID.
-	Put(sessionId string, session *sessionState)
+	Put(sessionId string, session *SessionState)
 }
 
 // A Config structure is used to configure a TLS client or server.
@@ -982,7 +982,7 @@ type ProtocolBugs struct {
 
 	// OuterRecordType, if non-zero, is the outer record type to use instead
 	// of application data.
-	OuterRecordType recordType
+	OuterRecordType RecordType
 
 	// SendSignatureAlgorithm, if non-zero, causes all signatures to be sent
 	// with the given signature algorithm rather than the one negotiated.
@@ -1292,8 +1292,8 @@ type Certificate struct {
 }
 
 // A TLS record.
-type record struct {
-	contentType  recordType
+type Record struct {
+	contentType  RecordType
 	major, minor uint8
 	payload      []byte
 }
@@ -1382,16 +1382,16 @@ type lruServerSessionCache struct {
 	lruSessionCache
 }
 
-func (c *lruServerSessionCache) Put(sessionId string, session *sessionState) {
+func (c *lruServerSessionCache) Put(sessionId string, session *SessionState) {
 	c.lruSessionCache.Put(sessionId, session)
 }
 
-func (c *lruServerSessionCache) Get(sessionId string) (*sessionState, bool) {
+func (c *lruServerSessionCache) Get(sessionId string) (*SessionState, bool) {
 	cs, ok := c.lruSessionCache.Get(sessionId)
 	if !ok {
 		return nil, false
 	}
-	return cs.(*sessionState), true
+	return cs.(*SessionState), true
 }
 
 // NewLRUClientSessionCache returns a ClientSessionCache with the given
@@ -1476,6 +1476,6 @@ func isSupportedSignatureAlgorithm(sigAlg signatureAlgorithm, sigAlgs []signatur
 
 var (
 	// See draft-ietf-tls-tls13-13, section 6.3.1.2.
-	downgradeTLS13 = []byte{0x44, 0x4f, 0x57, 0x4e, 0x47, 0x52, 0x44, 0x01}
-	downgradeTLS12 = []byte{0x44, 0x4f, 0x57, 0x4e, 0x47, 0x52, 0x44, 0x00}
+	DowngradeTLS13 = []byte{0x44, 0x4f, 0x57, 0x4e, 0x47, 0x52, 0x44, 0x01}
+	DowngradeTLS12 = []byte{0x44, 0x4f, 0x57, 0x4e, 0x47, 0x52, 0x44, 0x00}
 )

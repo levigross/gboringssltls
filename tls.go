@@ -23,7 +23,7 @@ import (
 // The configuration config must be non-nil and must have
 // at least one certificate.
 func Server(conn net.Conn, config *Config) *Conn {
-	c := &Conn{conn: conn, config: config}
+	c := &Conn{Conn: conn, config: config}
 	c.init()
 	return c
 }
@@ -33,7 +33,7 @@ func Server(conn net.Conn, config *Config) *Conn {
 // The config cannot be nil: users must set either ServerHostname or
 // InsecureSkipVerify in the config.
 func Client(conn net.Conn, config *Config) *Conn {
-	c := &Conn{conn: conn, config: config, isClient: true}
+	c := &Conn{Conn: conn, config: config, isClient: true}
 	c.init()
 	return c
 }

@@ -452,7 +452,7 @@ func doExchange(test *testCase, config *Config, conn net.Conn, isResume bool, nu
 		if test.testType == clientTest {
 			local, peer = peer, local
 		}
-		connDebug := &recordingConn{
+		connDebug := &RecordingConn{
 			Conn:       conn,
 			isDatagram: test.protocol == dtls,
 			local:      local,
@@ -2136,7 +2136,7 @@ func addBasicTests() {
 			config: Config{
 				MaxVersion: VersionTLS12,
 				Bugs: ProtocolBugs{
-					BadHelloRequest: []byte{typeHelloRequest, 0, 0, 1, 1},
+					BadHelloRequest: []byte{TypeHelloRequest, 0, 0, 1, 1},
 				},
 			},
 			flags: []string{
@@ -2152,7 +2152,7 @@ func addBasicTests() {
 			config: Config{
 				MaxVersion: VersionTLS12,
 				Bugs: ProtocolBugs{
-					BadHelloRequest: []byte{typeServerKeyExchange, 0, 0, 0},
+					BadHelloRequest: []byte{TypeServerKeyExchange, 0, 0, 0},
 				},
 			},
 			flags: []string{
@@ -2212,7 +2212,7 @@ func addBasicTests() {
 				},
 			},
 			sendPrefix: string([]byte{
-				byte(recordTypeHandshake),
+				byte(RecordTypeHandshake),
 				3, 1, // version
 				0, 0, // length
 			}),
@@ -2234,7 +2234,7 @@ func addBasicTests() {
 				},
 			},
 			sendPrefix: string([]byte{
-				byte(recordTypeAlert),
+				byte(RecordTypeAlert),
 				3, 1, // version
 				0, 2, // length
 				alertLevelWarning, byte(alertDecompressionFailure),
@@ -2268,7 +2268,7 @@ func addBasicTests() {
 			config: Config{
 				MaxVersion: VersionTLS12,
 				Bugs: ProtocolBugs{
-					SendCompressionMethods: []byte{1, 2, 3, compressionNone, 4, 5, 6},
+					SendCompressionMethods: []byte{1, 2, 3, CompressionNone, 4, 5, 6},
 				},
 			},
 		},
@@ -2278,7 +2278,7 @@ func addBasicTests() {
 			config: Config{
 				MaxVersion: VersionTLS13,
 				Bugs: ProtocolBugs{
-					SendCompressionMethods: []byte{1, 2, 3, compressionNone, 4, 5, 6},
+					SendCompressionMethods: []byte{1, 2, 3, CompressionNone, 4, 5, 6},
 				},
 			},
 			shouldFail:         true,
@@ -7564,7 +7564,7 @@ func addTLS13RecordTests() {
 			MaxVersion: VersionTLS13,
 			MinVersion: VersionTLS13,
 			Bugs: ProtocolBugs{
-				OuterRecordType: recordTypeHandshake,
+				OuterRecordType: RecordTypeHandshake,
 			},
 		},
 		shouldFail:    true,
@@ -7852,7 +7852,7 @@ func makePerMessageTests() []perMessageTest {
 		}
 
 		ret = append(ret, perMessageTest{
-			messageType: typeClientHello,
+			messageType: TypeClientHello,
 			test: testCase{
 				protocol: protocol,
 				testType: serverTest,
@@ -7865,7 +7865,7 @@ func makePerMessageTests() []perMessageTest {
 
 		if protocol == dtls {
 			ret = append(ret, perMessageTest{
-				messageType: typeHelloVerifyRequest,
+				messageType: TypeHelloVerifyRequest,
 				test: testCase{
 					protocol: protocol,
 					name:     "HelloVerifyRequest" + suffix,
@@ -7877,7 +7877,7 @@ func makePerMessageTests() []perMessageTest {
 		}
 
 		ret = append(ret, perMessageTest{
-			messageType: typeServerHello,
+			messageType: TypeServerHello,
 			test: testCase{
 				protocol: protocol,
 				name:     "ServerHello" + suffix,
@@ -7888,7 +7888,7 @@ func makePerMessageTests() []perMessageTest {
 		})
 
 		ret = append(ret, perMessageTest{
-			messageType: typeCertificate,
+			messageType: TypeCertificate,
 			test: testCase{
 				protocol: protocol,
 				name:     "ServerCertificate" + suffix,
@@ -7899,7 +7899,7 @@ func makePerMessageTests() []perMessageTest {
 		})
 
 		ret = append(ret, perMessageTest{
-			messageType: typeCertificateStatus,
+			messageType: TypeCertificateStatus,
 			test: testCase{
 				protocol: protocol,
 				name:     "CertificateStatus" + suffix,
@@ -7911,7 +7911,7 @@ func makePerMessageTests() []perMessageTest {
 		})
 
 		ret = append(ret, perMessageTest{
-			messageType: typeServerKeyExchange,
+			messageType: TypeServerKeyExchange,
 			test: testCase{
 				protocol: protocol,
 				name:     "ServerKeyExchange" + suffix,
@@ -7923,7 +7923,7 @@ func makePerMessageTests() []perMessageTest {
 		})
 
 		ret = append(ret, perMessageTest{
-			messageType: typeCertificateRequest,
+			messageType: TypeCertificateRequest,
 			test: testCase{
 				protocol: protocol,
 				name:     "CertificateRequest" + suffix,
@@ -7935,7 +7935,7 @@ func makePerMessageTests() []perMessageTest {
 		})
 
 		ret = append(ret, perMessageTest{
-			messageType: typeServerHelloDone,
+			messageType: TypeServerHelloDone,
 			test: testCase{
 				protocol: protocol,
 				name:     "ServerHelloDone" + suffix,
@@ -7946,7 +7946,7 @@ func makePerMessageTests() []perMessageTest {
 		})
 
 		ret = append(ret, perMessageTest{
-			messageType: typeCertificate,
+			messageType: TypeCertificate,
 			test: testCase{
 				testType: serverTest,
 				protocol: protocol,
@@ -7960,7 +7960,7 @@ func makePerMessageTests() []perMessageTest {
 		})
 
 		ret = append(ret, perMessageTest{
-			messageType: typeCertificateVerify,
+			messageType: TypeCertificateVerify,
 			test: testCase{
 				testType: serverTest,
 				protocol: protocol,
@@ -7974,7 +7974,7 @@ func makePerMessageTests() []perMessageTest {
 		})
 
 		ret = append(ret, perMessageTest{
-			messageType: typeClientKeyExchange,
+			messageType: TypeClientKeyExchange,
 			test: testCase{
 				testType: serverTest,
 				protocol: protocol,
@@ -7987,7 +7987,7 @@ func makePerMessageTests() []perMessageTest {
 
 		if protocol != dtls {
 			ret = append(ret, perMessageTest{
-				messageType: typeNextProtocol,
+				messageType: TypeNextProtocol,
 				test: testCase{
 					testType: serverTest,
 					protocol: protocol,
@@ -8001,7 +8001,7 @@ func makePerMessageTests() []perMessageTest {
 			})
 
 			ret = append(ret, perMessageTest{
-				messageType: typeChannelID,
+				messageType: TypeChannelID,
 				test: testCase{
 					testType: serverTest,
 					protocol: protocol,
@@ -8019,7 +8019,7 @@ func makePerMessageTests() []perMessageTest {
 		}
 
 		ret = append(ret, perMessageTest{
-			messageType: typeFinished,
+			messageType: TypeFinished,
 			test: testCase{
 				testType: serverTest,
 				protocol: protocol,
@@ -8031,7 +8031,7 @@ func makePerMessageTests() []perMessageTest {
 		})
 
 		ret = append(ret, perMessageTest{
-			messageType: typeNewSessionTicket,
+			messageType: TypeNewSessionTicket,
 			test: testCase{
 				protocol: protocol,
 				name:     "NewSessionTicket" + suffix,
@@ -8042,7 +8042,7 @@ func makePerMessageTests() []perMessageTest {
 		})
 
 		ret = append(ret, perMessageTest{
-			messageType: typeFinished,
+			messageType: TypeFinished,
 			test: testCase{
 				protocol: protocol,
 				name:     "ServerFinished" + suffix,
@@ -8055,7 +8055,7 @@ func makePerMessageTests() []perMessageTest {
 	}
 
 	ret = append(ret, perMessageTest{
-		messageType: typeClientHello,
+		messageType: TypeClientHello,
 		test: testCase{
 			testType: serverTest,
 			name:     "TLS13-ClientHello",
@@ -8066,7 +8066,7 @@ func makePerMessageTests() []perMessageTest {
 	})
 
 	ret = append(ret, perMessageTest{
-		messageType: typeServerHello,
+		messageType: TypeServerHello,
 		test: testCase{
 			name: "TLS13-ServerHello",
 			config: Config{
@@ -8076,7 +8076,7 @@ func makePerMessageTests() []perMessageTest {
 	})
 
 	ret = append(ret, perMessageTest{
-		messageType: typeEncryptedExtensions,
+		messageType: TypeEncryptedExtensions,
 		test: testCase{
 			name: "TLS13-EncryptedExtensions",
 			config: Config{
@@ -8086,7 +8086,7 @@ func makePerMessageTests() []perMessageTest {
 	})
 
 	ret = append(ret, perMessageTest{
-		messageType: typeCertificateRequest,
+		messageType: TypeCertificateRequest,
 		test: testCase{
 			name: "TLS13-CertificateRequest",
 			config: Config{
@@ -8097,7 +8097,7 @@ func makePerMessageTests() []perMessageTest {
 	})
 
 	ret = append(ret, perMessageTest{
-		messageType: typeCertificate,
+		messageType: TypeCertificate,
 		test: testCase{
 			name: "TLS13-ServerCertificate",
 			config: Config{
@@ -8107,7 +8107,7 @@ func makePerMessageTests() []perMessageTest {
 	})
 
 	ret = append(ret, perMessageTest{
-		messageType: typeCertificateVerify,
+		messageType: TypeCertificateVerify,
 		test: testCase{
 			name: "TLS13-ServerCertificateVerify",
 			config: Config{
@@ -8117,7 +8117,7 @@ func makePerMessageTests() []perMessageTest {
 	})
 
 	ret = append(ret, perMessageTest{
-		messageType: typeFinished,
+		messageType: TypeFinished,
 		test: testCase{
 			name: "TLS13-ServerFinished",
 			config: Config{
@@ -8127,7 +8127,7 @@ func makePerMessageTests() []perMessageTest {
 	})
 
 	ret = append(ret, perMessageTest{
-		messageType: typeCertificate,
+		messageType: TypeCertificate,
 		test: testCase{
 			testType: serverTest,
 			name:     "TLS13-ClientCertificate",
@@ -8140,7 +8140,7 @@ func makePerMessageTests() []perMessageTest {
 	})
 
 	ret = append(ret, perMessageTest{
-		messageType: typeCertificateVerify,
+		messageType: TypeCertificateVerify,
 		test: testCase{
 			testType: serverTest,
 			name:     "TLS13-ClientCertificateVerify",
@@ -8153,7 +8153,7 @@ func makePerMessageTests() []perMessageTest {
 	})
 
 	ret = append(ret, perMessageTest{
-		messageType: typeFinished,
+		messageType: TypeFinished,
 		test: testCase{
 			testType: serverTest,
 			name:     "TLS13-ClientFinished",
@@ -8174,7 +8174,7 @@ func addWrongMessageTypeTests() {
 		t.test.expectedError = ":UNEXPECTED_MESSAGE:"
 		t.test.expectedLocalError = "remote error: unexpected message"
 
-		if t.test.config.MaxVersion >= VersionTLS13 && t.messageType == typeServerHello {
+		if t.test.config.MaxVersion >= VersionTLS13 && t.messageType == TypeServerHello {
 			// In TLS 1.3, a bad ServerHello means the client sends
 			// an unencrypted alert while the server expects
 			// encryption, so the alert is not readable by runner.
@@ -8193,14 +8193,14 @@ func addTrailingMessageDataTests() {
 		t.test.expectedError = ":DECODE_ERROR:"
 		t.test.expectedLocalError = "remote error: error decoding message"
 
-		if t.test.config.MaxVersion >= VersionTLS13 && t.messageType == typeServerHello {
+		if t.test.config.MaxVersion >= VersionTLS13 && t.messageType == TypeServerHello {
 			// In TLS 1.3, a bad ServerHello means the client sends
 			// an unencrypted alert while the server expects
 			// encryption, so the alert is not readable by runner.
 			t.test.expectedLocalError = "local error: bad record MAC"
 		}
 
-		if t.messageType == typeFinished {
+		if t.messageType == TypeFinished {
 			// Bad Finished messages read as the verify data having
 			// the wrong length.
 			t.test.expectedError = ":DIGEST_CHECK_FAILED:"

@@ -63,7 +63,7 @@ func wireToVersion(vers uint16, isDTLS bool) (uint16, bool) {
 	return 0, false
 }
 
-func (c *Conn) dtlsDoReadRecord(want recordType) (recordType, *block, error) {
+func (c *Conn) dtlsDoReadRecord(want RecordType) (RecordType, *block, error) {
 	recordHeaderLen := dtlsRecordHeaderLen
 
 	if c.rawInput == nil {
@@ -76,7 +76,7 @@ func (c *Conn) dtlsDoReadRecord(want recordType) (recordType, *block, error) {
 	if len(b.data) == 0 {
 		// Pick some absurdly large buffer size.
 		b.resize(maxCiphertext + recordHeaderLen)
-		n, err := c.conn.Read(c.rawInput.data)
+		n, err := c.Conn.Read(c.rawInput.data)
 		if err != nil {
 			return 0, nil, err
 		}
@@ -95,12 +95,12 @@ func (c *Conn) dtlsDoReadRecord(want recordType) (recordType, *block, error) {
 	if len(b.data) < recordHeaderLen {
 		return 0, nil, errors.New("dtls: failed to read record header")
 	}
-	typ := recordType(b.data[0])
+	typ := RecordType(b.data[0])
 	vers := uint16(b.data[1])<<8 | uint16(b.data[2])
 	// Alerts sent near version negotiation do not have a well-defined
 	// record-layer version prior to TLS 1.3. (In TLS 1.3, the record-layer
 	// version is irrelevant.)
-	if typ != recordTypeAlert {
+	if typ != RecordTypeAlert {
 		if c.haveVers {
 			if wireVers := versionToWire(c.vers, c.isDTLS); vers != wireVers {
 				c.sendAlert(alertProtocolVersion)
@@ -151,7 +151,7 @@ func (c *Conn) dtlsDoReadRecord(want recordType) (recordType, *block, error) {
 
 	// Require that ChangeCipherSpec always share a packet with either the
 	// previous or next handshake message.
-	if newPacket && typ == recordTypeChangeCipherSpec && c.rawInput == nil {
+	if newPacket && typ == RecordTypeChangeCipherSpec && c.rawInput == nil {
 		return 0, nil, c.in.setErrorLocked(fmt.Errorf("dtls: ChangeCipherSpec not packed together with Finished"))
 	}
 
@@ -168,22 +168,22 @@ func (c *Conn) makeFragment(header, data []byte, fragOffset, fragLen int) []byte
 	return fragment
 }
 
-func (c *Conn) dtlsWriteRecord(typ recordType, data []byte) (n int, err error) {
-	if typ != recordTypeHandshake {
+func (c *Conn) dtlsWriteRecord(typ RecordType, data []byte) (n int, err error) {
+	if typ != RecordTypeHandshake {
 		// Only handshake messages are fragmented.
 		n, err = c.dtlsWriteRawRecord(typ, data)
 		if err != nil {
 			return
 		}
 
-		if typ == recordTypeChangeCipherSpec {
+		if typ == RecordTypeChangeCipherSpec {
 			err = c.out.changeCipherSpec(c.config)
 			if err != nil {
 				// Cannot call sendAlert directly,
 				// because we already hold c.out.Mutex.
 				c.tmp[0] = alertLevelError
 				c.tmp[1] = byte(err.(alert))
-				c.writeRecord(recordTypeAlert, c.tmp[0:2])
+				c.WriteRecord(RecordTypeAlert, c.tmp[0:2])
 				return n, c.out.setErrorLocked(&net.OpError{Op: "local error", Err: err})
 			}
 		}
@@ -191,7 +191,7 @@ func (c *Conn) dtlsWriteRecord(typ recordType, data []byte) (n int, err error) {
 	}
 
 	if c.out.cipher == nil && c.config.Bugs.StrayChangeCipherSpec {
-		_, err = c.dtlsWriteRawRecord(recordTypeChangeCipherSpec, []byte{1})
+		_, err = c.dtlsWriteRawRecord(RecordTypeChangeCipherSpec, []byte{1})
 		if err != nil {
 			return
 		}
@@ -214,7 +214,7 @@ func (c *Conn) dtlsWriteRecord(typ recordType, data []byte) (n int, err error) {
 	header := data[:4]
 	data = data[4:]
 
-	isFinished := header[0] == typeFinished
+	isFinished := header[0] == TypeFinished
 
 	if c.config.Bugs.SendEmptyFragments {
 		fragment := c.makeFragment(header, data, 0, 0)
@@ -312,7 +312,7 @@ func (c *Conn) dtlsFlushHandshake() error {
 	// Format them into packets.
 	var packets [][]byte
 	for _, record := range records {
-		b, err := c.dtlsSealRecord(recordTypeHandshake, record)
+		b, err := c.dtlsSealRecord(RecordTypeHandshake, record)
 		if err != nil {
 			return err
 		}
@@ -329,7 +329,7 @@ func (c *Conn) dtlsFlushHandshake() error {
 
 	// Send all the packets.
 	for _, packet := range packets {
-		if _, err := c.conn.Write(packet); err != nil {
+		if _, err := c.Conn.Write(packet); err != nil {
 			return err
 		}
 	}
@@ -337,7 +337,7 @@ func (c *Conn) dtlsFlushHandshake() error {
 }
 
 // dtlsSealRecord seals a record into a block from |c.out|'s pool.
-func (c *Conn) dtlsSealRecord(typ recordType, data []byte) (b *block, err error) {
+func (c *Conn) dtlsSealRecord(typ RecordType, data []byte) (b *block, err error) {
 	recordHeaderLen := dtlsRecordHeaderLen
 	maxLen := c.config.Bugs.MaxHandshakeRecordLength
 	if maxLen <= 0 {
@@ -396,13 +396,13 @@ func (c *Conn) dtlsSealRecord(typ recordType, data []byte) (b *block, err error)
 	return
 }
 
-func (c *Conn) dtlsWriteRawRecord(typ recordType, data []byte) (n int, err error) {
+func (c *Conn) dtlsWriteRawRecord(typ RecordType, data []byte) (n int, err error) {
 	b, err := c.dtlsSealRecord(typ, data)
 	if err != nil {
 		return
 	}
 
-	_, err = c.conn.Write(b.data)
+	_, err = c.Conn.Write(b.data)
 	if err != nil {
 		return
 	}
@@ -424,7 +424,7 @@ func (c *Conn) dtlsDoReadHandshake() ([]byte, error) {
 			if err := c.in.err; err != nil {
 				return nil, err
 			}
-			if err := c.readRecord(recordTypeHandshake); err != nil {
+			if err := c.ReadRecord(RecordTypeHandshake); err != nil {
 				return nil, err
 			}
 		}
@@ -483,7 +483,7 @@ func (c *Conn) dtlsDoReadHandshake() ([]byte, error) {
 // The configuration config must be non-nil and must have
 // at least one certificate.
 func DTLSServer(conn net.Conn, config *Config) *Conn {
-	c := &Conn{config: config, isDTLS: true, conn: conn}
+	c := &Conn{config: config, isDTLS: true, Conn: conn}
 	c.init()
 	return c
 }
@@ -493,7 +493,7 @@ func DTLSServer(conn net.Conn, config *Config) *Conn {
 // The config cannot be nil: users must set either ServerHostname or
 // InsecureSkipVerify in the config.
 func DTLSClient(conn net.Conn, config *Config) *Conn {
-	c := &Conn{config: config, isClient: true, isDTLS: true, conn: conn}
+	c := &Conn{config: config, isClient: true, isDTLS: true, Conn: conn}
 	c.init()
 	return c
 }

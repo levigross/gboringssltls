@@ -18,7 +18,7 @@ import (
 
 // sessionState contains the information that is serialized into a session
 // ticket in order to later resume a connection.
-type sessionState struct {
+type SessionState struct {
 	vers                 uint16
 	cipherSuite          uint16
 	masterSecret         []byte
@@ -31,7 +31,7 @@ type sessionState struct {
 	ticketAgeAdd         uint32
 }
 
-func (s *sessionState) marshal() []byte {
+func (s *SessionState) marshal() []byte {
 	msg := newByteBuilder()
 	msg.addU16(s.vers)
 	msg.addU16(s.cipherSuite)
@@ -61,7 +61,7 @@ func (s *sessionState) marshal() []byte {
 	return msg.finish()
 }
 
-func (s *sessionState) unmarshal(data []byte) bool {
+func (s *SessionState) unmarshal(data []byte) bool {
 	if len(data) < 8 {
 		return false
 	}
@@ -145,7 +145,7 @@ func (s *sessionState) unmarshal(data []byte) bool {
 	return true
 }
 
-func (c *Conn) encryptTicket(state *sessionState) ([]byte, error) {
+func (c *Conn) encryptTicket(state *SessionState) ([]byte, error) {
 	serialized := state.marshal()
 	encrypted := make([]byte, aes.BlockSize+len(serialized)+sha256.Size)
 	iv := encrypted[:aes.BlockSize]
@@ -167,7 +167,7 @@ func (c *Conn) encryptTicket(state *sessionState) ([]byte, error) {
 	return encrypted, nil
 }
 
-func (c *Conn) decryptTicket(encrypted []byte) (*sessionState, bool) {
+func (c *Conn) decryptTicket(encrypted []byte) (*SessionState, bool) {
 	if len(encrypted) < aes.BlockSize+sha256.Size {
 		return nil, false
 	}
@@ -191,7 +191,7 @@ func (c *Conn) decryptTicket(encrypted []byte) (*sessionState, bool) {
 	plaintext := make([]byte, len(ciphertext))
 	cipher.NewCTR(block, iv).XORKeyStream(plaintext, ciphertext)
 
-	state := new(sessionState)
+	state := new(SessionState)
 	ok := state.unmarshal(plaintext)
 	return state, ok
 }

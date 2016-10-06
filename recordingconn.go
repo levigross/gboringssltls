@@ -43,7 +43,7 @@ type flow struct {
 // recordingConn is a net.Conn that records the traffic that passes through it.
 // WriteTo can be used to produce output that can be later be loaded with
 // ParseTestData.
-type recordingConn struct {
+type RecordingConn struct {
 	net.Conn
 	sync.Mutex
 	flows       []flow
@@ -51,7 +51,7 @@ type recordingConn struct {
 	local, peer string
 }
 
-func (r *recordingConn) appendFlow(flowType flowType, message string, data []byte) {
+func (r *RecordingConn) appendFlow(flowType flowType, message string, data []byte) {
 	r.Lock()
 	defer r.Unlock()
 
@@ -64,7 +64,7 @@ func (r *recordingConn) appendFlow(flowType flowType, message string, data []byt
 	}
 }
 
-func (r *recordingConn) Read(b []byte) (n int, err error) {
+func (r *RecordingConn) Read(b []byte) (n int, err error) {
 	if n, err = r.Conn.Read(b); n == 0 {
 		return
 	}
@@ -72,7 +72,7 @@ func (r *recordingConn) Read(b []byte) (n int, err error) {
 	return
 }
 
-func (r *recordingConn) Write(b []byte) (n int, err error) {
+func (r *RecordingConn) Write(b []byte) (n int, err error) {
 	if n, err = r.Conn.Write(b); n == 0 {
 		return
 	}
@@ -81,12 +81,12 @@ func (r *recordingConn) Write(b []byte) (n int, err error) {
 }
 
 // LogSpecial appends an entry to the record of type 'special'.
-func (r *recordingConn) LogSpecial(message string, data []byte) {
+func (r *RecordingConn) LogSpecial(message string, data []byte) {
 	r.appendFlow(specialFlow, message, data)
 }
 
 // WriteTo writes hex dumps to w that contains the recorded traffic.
-func (r *recordingConn) WriteTo(w io.Writer) {
+func (r *RecordingConn) WriteTo(w io.Writer) {
 	fmt.Fprintf(w, ">>> runner is %s, shim is %s\n", r.local, r.peer)
 	for i, flow := range r.flows {
 		switch flow.flowType {
@@ -106,7 +106,7 @@ func (r *recordingConn) WriteTo(w io.Writer) {
 	}
 }
 
-func (r *recordingConn) Transcript() []byte {
+func (r *RecordingConn) Transcript() []byte {
 	var ret []byte
 	for _, flow := range r.flows {
 		if flow.flowType != writeFlow {
